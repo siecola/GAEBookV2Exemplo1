@@ -13,10 +13,10 @@ public class HelloController {
 
     private static final Logger log = Logger.getLogger(HelloController.class.getName());
 
-    @GetMapping("/dog/{cachorro}")
-    public String hello(@PathVariable String cachorro) {
-        log.info("Dog: " + cachorro);
+    @GetMapping("/dog/{name}")
+    public String hello(@PathVariable String name) {
+        log.info("Dog: " + name);
 
-        return "Hello World - " + cachorro;
+        return "Hello World - " + name;
     }
 }
