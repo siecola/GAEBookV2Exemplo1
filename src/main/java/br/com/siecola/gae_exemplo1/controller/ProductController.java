@@ -13,9 +13,13 @@ import com.google.appengine.api.datastore.Query.FilterPredicate;
 import java.util.ArrayList;
 import java.util.List;
 
+import java.util.logging.Logger;
+
 @RestController
 @RequestMapping(path="/api/products")
 public class ProductController {
+
+    private static final Logger log = Logger.getLogger("ProductController");
 
     @GetMapping("/{code}")
     public ResponseEntity<Product> getProduct(@PathVariable int code) {
@@ -86,6 +90,9 @@ public class ProductController {
     public ResponseEntity<Product> deleteProduct(
             @PathVariable("code") int code) {
 
+        //Mensagem 1 - DEBUG
+        log.fine("Tentando apagar produto com código=[" + code + "]");
+
         DatastoreService datastore = DatastoreServiceFactory
                 .getDatastoreService();
 
@@ -99,10 +106,18 @@ public class ProductController {
         if (productEntity != null) {
             datastore.delete(productEntity.getKey());
 
+            //Mensagem 2 - INFO
+            log.info("Produto com código=[" + code + "] " +
+                    "apagado com sucesso");
+
             Product product = entityToProduct(productEntity);
 
             return new ResponseEntity<Product>(product, HttpStatus.OK);
         } else {
+            //Mensagem 3 - ERROR
+            log.severe ("Erro ao apagar produto com código=[" + code +
+                    "]. Produto não encontrado!");
+
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
