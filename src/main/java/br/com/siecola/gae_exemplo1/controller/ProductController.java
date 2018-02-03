@@ -4,6 +4,7 @@ import br.com.siecola.gae_exemplo1.model.Product;
 import com.google.appengine.api.datastore.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import com.google.appengine.api.datastore.Query.Filter;
@@ -21,6 +22,7 @@ public class ProductController {
 
     private static final Logger log = Logger.getLogger("ProductController");
 
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @GetMapping("/{code}")
     public ResponseEntity<Product> getProduct(@PathVariable int code) {
         DatastoreService datastore = DatastoreServiceFactory
@@ -42,6 +44,7 @@ public class ProductController {
         }
     }
 
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @GetMapping
     public ResponseEntity<List<Product>> getProducts() {
         List<Product> products = new ArrayList<>();
@@ -64,6 +67,7 @@ public class ProductController {
         return new ResponseEntity<List<Product>>(products, HttpStatus.OK);
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping
     public ResponseEntity<Product> saveProduct(@RequestBody Product product) {
 
@@ -86,6 +90,7 @@ public class ProductController {
         return new ResponseEntity<Product>(product, HttpStatus.CREATED);
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping(path = "/{code}")
     public ResponseEntity<Product> deleteProduct(
             @PathVariable("code") int code) {
@@ -122,6 +127,7 @@ public class ProductController {
         }
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping(path = "/{code}")
     public ResponseEntity<Product> updateProduct(@RequestBody Product product,
                                                  @PathVariable("code") int code) {
