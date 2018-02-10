@@ -1,11 +1,15 @@
 package br.com.siecola.gae_exemplo1.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 
 public class User implements Serializable, UserDetails {
 
@@ -25,29 +29,36 @@ public class User implements Serializable, UserDetails {
 
     private boolean enabled;
 
+    @JsonIgnore
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null;
+        List<GrantedAuthority> setAuths = new ArrayList<>();
+        setAuths.add(new SimpleGrantedAuthority(this.getRole()));
+        return setAuths;
     }
 
-    @Override
-    public String getUsername() {
-        return null;
-    }
-
+    @JsonIgnore
     @Override
     public boolean isAccountNonExpired() {
-        return false;
+        return true;
     }
 
+    @JsonIgnore
     @Override
     public boolean isAccountNonLocked() {
-        return false;
+        return true;
     }
 
+    @JsonIgnore
     @Override
     public boolean isCredentialsNonExpired() {
-        return false;
+        return true;
+    }
+
+    @JsonIgnore
+    @Override
+    public String getUsername() {
+        return this.email;
     }
 
 

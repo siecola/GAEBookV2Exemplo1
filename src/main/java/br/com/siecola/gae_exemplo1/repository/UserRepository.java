@@ -1,5 +1,7 @@
 package br.com.siecola.gae_exemplo1.repository;
 
+import br.com.siecola.gae_exemplo1.exception.UserAlreadyExistsException;
+import br.com.siecola.gae_exemplo1.exception.UserNotFoundException;
 import br.com.siecola.gae_exemplo1.model.User;
 import com.google.appengine.api.datastore.*;
 import org.springframework.stereotype.Repository;
@@ -9,8 +11,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.logging.Logger;
-
 import java.util.logging.Logger;
 
 @Repository
@@ -29,6 +29,145 @@ public class UserRepository {
     private static final String PROPERTY_ROLE = "role";
     private static final String PROPERTY_ENABLED = "enabled";
 
+
+    @PostConstruct
+    public void init(){
+        User adminUser;
+        Optional<User> optAdminUser = this.getByEmail("matilde@siecola.com.br");
+        try {
+            if (optAdminUser.isPresent()) {
+                adminUser = optAdminUser.get();
+                if (!adminUser.getRole().equals("ADMIN")) {
+                    adminUser.setRole("ADMIN");
+                    this.updateUser(adminUser, "matilde@siecola.com.br");
+                }
+            } else {
+                adminUser = new User();
+                adminUser.setRole("ADMIN");
+                adminUser.setEnabled(true);
+                adminUser.setPassword("matilde");
+                adminUser.setEmail("matilde@siecola.com.br");
+                this.saveUser(adminUser);
+            }
+        } catch (UserAlreadyExistsException | UserNotFoundException e) {
+            log.severe("Falha ao criar usuário ADMIN");
+        }
+    }
+
+    public User saveUser (User user) throws UserAlreadyExistsException {
+        DatastoreService datastore = DatastoreServiceFactory
+                .getDatastoreService();
+
+        if (!checkIfEmailExist (user)) {
+            Key userKey = KeyFactory.createKey(USER_KIND, USER_KEY);
+            Entity userEntity = new Entity(USER_KIND, userKey);
+
+            userToEntity (user, userEntity);
+
+            datastore.put(userEntity);
+
+            user.setId(userEntity.getKey().getId());
+
+            return user;
+        } else {
+            throw new UserAlreadyExistsException("Usuário " + user.getEmail()
+                    + " já existe");
+        }
+    }
+
+    public User updateUser (User user, String email)
+            throws UserNotFoundException, UserAlreadyExistsException {
+
+        if (!checkIfEmailExist (user)) {
+            DatastoreService datastore = DatastoreServiceFactory
+                    .getDatastoreService();
+
+            Query.Filter emailFilter = new Query.FilterPredicate(PROPERTY_EMAIL,
+                    Query.FilterOperator.EQUAL, email);
+
+            Query query = new Query(USER_KIND).setFilter(emailFilter);
+
+            Entity userEntity = datastore.prepare(query).asSingleEntity();
+
+            if (userEntity != null) {
+                userToEntity (user, userEntity);
+
+                datastore.put(userEntity);
+
+                user.setId(userEntity.getKey().getId());
+
+                return user;
+            } else {
+                throw new UserNotFoundException("Usuário " + email
+                        + " não encontrado");
+            }
+        } else {
+            throw new UserAlreadyExistsException("Usuário " + user.getEmail()
+                    + " já existe");
+        }
+    }
+
+    public Optional<User> getByEmail (String email) {
+        log.info("User: " + email);
+
+        DatastoreService datastore = DatastoreServiceFactory
+                .getDatastoreService();
+
+        Query.Filter filter = new Query.FilterPredicate(PROPERTY_EMAIL,
+                Query.FilterOperator.EQUAL, email);
+
+        Query query = new Query(USER_KIND).setFilter(filter);
+
+        Entity userEntity = datastore.prepare(query).asSingleEntity();
+
+        if (userEntity != null) {
+            return Optional.ofNullable(entityToUser(userEntity));
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    public List<User> getUsers() {
+        List<User> users = new ArrayList<>();
+        DatastoreService datastore = DatastoreServiceFactory
+                .getDatastoreService();
+
+        Query query;
+        query = new Query(USER_KIND).addSort(PROPERTY_EMAIL,
+                Query.SortDirection.ASCENDING);
+
+        List<Entity> userEntities = datastore.prepare(query).asList(
+                FetchOptions.Builder.withDefaults());
+
+        for (Entity userEntity : userEntities) {
+            User user = entityToUser(userEntity);
+
+            users.add(user);
+        }
+
+        return users;
+    }
+
+    public User deleteUser (String email) throws UserNotFoundException {
+        DatastoreService datastore = DatastoreServiceFactory
+                .getDatastoreService();
+
+        Query.Filter userFilter = new Query.FilterPredicate(PROPERTY_EMAIL,
+                Query.FilterOperator.EQUAL, email);
+
+        Query query = new Query(USER_KIND).setFilter(userFilter);
+
+        Entity userEntity = datastore.prepare(query).asSingleEntity();
+
+        if (userEntity != null) {
+            datastore.delete(userEntity.getKey());
+
+            return entityToUser(userEntity);
+        } else {
+            throw new UserNotFoundException("Usuário " + email
+                    + " não encontrado");
+        }
+    }
 
     private void userToEntity (User user, Entity userEntity) {
         userEntity.setProperty(PROPERTY_ID, user.getId());
