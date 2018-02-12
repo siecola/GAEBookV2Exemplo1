@@ -50,7 +50,7 @@ public class MessageController {
             if (optProduct.isPresent()) {
                 Product product = optProduct.get();
 
-                Sender sender = new Sender("AIzaSyDc46cuWVVrfCUyuJLCJUmB9XoiQDtvXOQ");
+                Sender sender = new Sender("API_KEY");
                 Gson gson = new Gson();
                 Message message = new Message.Builder().addData("product", gson.toJson(product)).build();
                 Result result;
