@@ -24,6 +24,7 @@ public class UserService implements UserDetailsService {
         Optional<br.com.siecola.gae_exemplo1.model.User> optUser =
                 userRepository.getByEmail(email);
         if (optUser.isPresent()) {
+            userRepository.updateUserLogin(optUser.get());
             return optUser.get();
         } else {
             throw new UsernameNotFoundException("Usuário não encontrado");
