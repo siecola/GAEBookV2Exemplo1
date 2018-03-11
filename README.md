@@ -1,7 +1,7 @@
 # How to develop a Spring Boot application to run on Google App Engine 
 This is the source code repository related to this [book](https://www.casadocodigo.com.br/products/livro-gae), about how to develop a **Spring Boot** application to run on standard environment of **Google App Engine**. 
 
-> To read this page in Portuguese, click [here](https://github.com/siecola/GAEBookV2Exemplo1/blob/master/README.pt-br.md).
+> Para ler essa página em Português, clique [aqui](https://github.com/siecola/GAEBookV2Exemplo1/blob/master/README.pt-br.md).
 
 
 
